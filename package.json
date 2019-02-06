@@ -1,0 +1,22 @@
+{
+  "name": "clear-statement",
+  "version": "1.0.0",
+  "description": "A clear-statement Web Component.",
+  "module": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "author": "Jeremy Tan <emailjeremytan@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^1.1.2",
+    "rollup-plugin-typescript": "^1.0.0",
+    "tslib": "^1.9.3",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.1"
+  }
+}
