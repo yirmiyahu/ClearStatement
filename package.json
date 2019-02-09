@@ -18,5 +18,8 @@
     "tslib": "^1.9.3",
     "tslint": "^5.12.1",
     "typescript": "^3.3.1"
+  },
+  "dependencies": {
+    "lit-html": "^1.0.0"
   }
 }
