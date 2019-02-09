@@ -4,8 +4,21 @@
 
 // const ATTRIBUTE_SUPPORT = 'for';
 
+import { html, render } from 'lit-html';
+
 export default class ClearStatement extends HTMLElement {
   static is = 'clear-statement';
+
+  static template = (object: string) => html`
+    <p>Hello, ${object}</p>
+  `
+
+  constructor() {
+    super();
+    const shadowRoot = this.attachShadow({ mode: 'open' });
+    render(ClearStatement.template('World'), shadowRoot);
+  }
+
   // private supportClaimsMap: SupportClaimsMap;
 
   // constructor() {
