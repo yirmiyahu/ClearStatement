@@ -41,8 +41,6 @@ export default class ClearStatement extends HTMLElement {
 
   private indexedSupports: SupportClaimsMap;
   private onClaimClick: (event: MouseEvent) => void;
-  private _expanded: boolean;
-  private _visible: boolean;
 
   constructor() {
     super();
@@ -79,20 +77,18 @@ export default class ClearStatement extends HTMLElement {
 
   set expanded(value: boolean) {
     value ? this.setAttribute('expanded', '') : this.removeAttribute('expanded');
-    this._expanded = value;
   }
 
   get expanded(): boolean {
-    return this._expanded;
+    return this.hasAttribute('expanded');
   }
 
   set visible(value: boolean) {
     value ? this.setAttribute('visible', '') : this.removeAttribute('visible');
-    this._visible = value;
   }
 
   get visible(): boolean {
-    return this._visible;
+    return this.hasAttribute('visible');
   }
 
   onClaimClickHandler(event: MouseEvent) {
@@ -103,20 +99,24 @@ export default class ClearStatement extends HTMLElement {
       window.open(clickedEl.getAttribute('href'));
     } else {
       const clearStatement = clickedEl as ClearStatement;
-      clearStatement.expanded = !clearStatement.expanded;
+      clearStatement.toggleExpanded();
 
       const support = this.indexedSupports[clearStatement.getAttribute(ATTRIBUTE_CLAIM)];
-      if (support instanceof ClearStatement) {
-        support.visible = clearStatement.expanded;
-      } else {
-        if (clearStatement.expanded) {
-          support.setAttribute('visible', '');
-        } else {
-          support.removeAttribute('visible');
-        }
-      }
+      this.toggleSupport(support, clearStatement.expanded);
     }
 
     event.stopPropagation();
+  }
+
+  toggleExpanded() {
+    this.expanded = !this.expanded;
+  }
+
+  toggleSupport(el: HTMLElement, show: boolean) {
+    if (el instanceof ClearStatement) {
+      el.visible = show;
+    } else {
+      show ? el.setAttribute('visible', '') : el.removeAttribute('visible');
+    }
   }
 }
