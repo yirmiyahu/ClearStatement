@@ -1,7 +1,7 @@
 import { html, render } from 'lit-html';
 
 interface SupportClaimsMap {
-  [_: string]: HTMLElement;
+  [_: string]: HTMLElement[];
 }
 
 const ATTRIBUTE_CLAIM     = 're';
@@ -30,33 +30,33 @@ export default class ClearStatement extends HTMLElement {
       }
     </style>
     <slot></slot>
-    <div>
-      <slot id="support" name="support"></slot>
-    </div>
+    <div><slot id="support" name="support"></slot></div>
   `
 
   static isClaim(el: HTMLElement): boolean {
     return el.hasAttribute(ATTRIBUTE_CLAIM);
   }
 
-  private indexedSupports: SupportClaimsMap;
+  private mappedSupports: SupportClaimsMap;
   private onClaimClick: (event: MouseEvent) => void;
 
   constructor() {
     super();
     const shadowRoot = this.attachShadow({ mode: 'open' });
     render(ClearStatement.template(), shadowRoot);
-    this.indexedSupports = this.indexSupports();
+    this.mappedSupports = this.mapSupports();
   }
 
-  indexSupports(): SupportClaimsMap {
+  mapSupports(): SupportClaimsMap {
     const supportsSlot = this.shadowRoot.getElementById('support') as HTMLSlotElement;
     const supportNodes = supportsSlot.assignedNodes();
 
     if (!supportNodes.length) return;
 
     return Array.prototype.reduce.call(supportNodes, (store: SupportClaimsMap, support: HTMLElement) => {
-      store[support.getAttribute(ATTRIBUTE_SUPPORT)] = support;
+      const topic = support.getAttribute(ATTRIBUTE_SUPPORT);
+      store[topic] = (store[topic] || []);
+      store[topic].push(support);
       return store;
     }, {});
   }
@@ -101,8 +101,9 @@ export default class ClearStatement extends HTMLElement {
       const clearStatement = clickedEl as ClearStatement;
       clearStatement.toggleExpanded();
 
-      const support = this.indexedSupports[clearStatement.getAttribute(ATTRIBUTE_CLAIM)];
-      this.toggleSupport(support, clearStatement.expanded);
+      const topic = clearStatement.getAttribute(ATTRIBUTE_CLAIM);
+      const supports = this.mappedSupports[topic];
+      this.toggleSupports(supports, clearStatement.expanded);
     }
 
     event.stopPropagation();
@@ -112,11 +113,13 @@ export default class ClearStatement extends HTMLElement {
     this.expanded = !this.expanded;
   }
 
-  toggleSupport(el: HTMLElement, show: boolean) {
-    if (el instanceof ClearStatement) {
-      el.visible = show;
-    } else {
-      show ? el.setAttribute('visible', '') : el.removeAttribute('visible');
-    }
+  toggleSupports(supports: HTMLElement[], show: boolean) {
+    supports.forEach((support) => {
+      if (support instanceof ClearStatement) {
+        support.visible = show;
+      } else {
+        show ? support.setAttribute('visible', '') : support.removeAttribute('visible');
+      }
+    });
   }
 }
