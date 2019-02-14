@@ -8,6 +8,43 @@ const ATTRIBUTE_CLAIM     = 're';
 const ATTRIBUTE_CONTAINER = 'ctn';
 const ATTRIBUTE_SUPPORT   = 'for';
 
+function addSupport(store: SupportClaimsMap, support: HTMLElement): SupportClaimsMap {
+  const topic = support.getAttribute(ATTRIBUTE_SUPPORT);
+  store[topic] = (store[topic] || []);
+  store[topic].push(support);
+  return store;
+}
+
+function onClaimClickHandler(event: MouseEvent) {
+  const clickedEl = event.target as HTMLElement;
+  if (!ClearStatement.isClaim(clickedEl)) return;
+
+  if (clickedEl.hasAttribute('href')) {
+    window.open(clickedEl.getAttribute('href'));
+  } else {
+    const clearStatement = clickedEl as ClearStatement;
+    clearStatement.toggleExpanded();
+
+    const topic = clearStatement.getAttribute(ATTRIBUTE_CLAIM);
+    const supports = this.mappedSupports[topic];
+    toggleSupports(supports, clearStatement.expanded);
+  }
+
+  event.stopPropagation();
+}
+
+function toggleSupports(supports: HTMLElement[], show: boolean) {
+  supports.forEach((support) => toggleSupport(support, show));
+}
+
+function toggleSupport(support: HTMLElement, show: boolean) {
+  if (support instanceof ClearStatement) {
+    support.visible = show;
+  } else {
+    show ? support.setAttribute('visible', '') : support.removeAttribute('visible');
+  }
+}
+
 export default class ClearStatement extends HTMLElement {
   static is = 'clear-statement';
 
@@ -44,27 +81,19 @@ export default class ClearStatement extends HTMLElement {
     super();
     const shadowRoot = this.attachShadow({ mode: 'open' });
     render(ClearStatement.template(), shadowRoot);
-    this.mappedSupports = this.mapSupports();
+    this.mapSupports();
   }
 
-  mapSupports(): SupportClaimsMap {
+  mapSupports() {
     const supportsSlot = this.shadowRoot.getElementById('support') as HTMLSlotElement;
     const supportNodes = supportsSlot.assignedNodes();
-
-    if (!supportNodes.length) return;
-
-    return Array.prototype.reduce.call(supportNodes, (store: SupportClaimsMap, support: HTMLElement) => {
-      const topic = support.getAttribute(ATTRIBUTE_SUPPORT);
-      store[topic] = (store[topic] || []);
-      store[topic].push(support);
-      return store;
-    }, {});
+    this.mappedSupports = supportNodes.length ? supportNodes.reduce(addSupport, {}) : null;
   }
 
   connectedCallback() {
     if (!this.hasAttribute(ATTRIBUTE_CONTAINER)) return;
 
-    this.onClaimClick = this.onClaimClickHandler.bind(this);
+    this.onClaimClick = onClaimClickHandler.bind(this);
 
     this.addEventListener('mouseenter', (_) => {
       this.addEventListener('click', this.onClaimClick);
@@ -91,35 +120,7 @@ export default class ClearStatement extends HTMLElement {
     return this.hasAttribute('visible');
   }
 
-  onClaimClickHandler(event: MouseEvent) {
-    const clickedEl = event.target as HTMLElement;
-    if (!ClearStatement.isClaim(clickedEl)) return;
-
-    if (clickedEl.hasAttribute('href')) {
-      window.open(clickedEl.getAttribute('href'));
-    } else {
-      const clearStatement = clickedEl as ClearStatement;
-      clearStatement.toggleExpanded();
-
-      const topic = clearStatement.getAttribute(ATTRIBUTE_CLAIM);
-      const supports = this.mappedSupports[topic];
-      this.toggleSupports(supports, clearStatement.expanded);
-    }
-
-    event.stopPropagation();
-  }
-
   toggleExpanded() {
     this.expanded = !this.expanded;
-  }
-
-  toggleSupports(supports: HTMLElement[], show: boolean) {
-    supports.forEach((support) => {
-      if (support instanceof ClearStatement) {
-        support.visible = show;
-      } else {
-        show ? support.setAttribute('visible', '') : support.removeAttribute('visible');
-      }
-    });
   }
 }
