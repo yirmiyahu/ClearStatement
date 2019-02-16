@@ -8,11 +8,14 @@ interface ClaimsMap {
   [_: string]: ClearStatement;
 }
 
+const COMPONENT_TAG_NAME  = 'clear-statement';
 const COMPONENT_NODE_NAME = 'CLEAR-STATEMENT';
 
 const ATTRIBUTE_CLAIM     = 're';
 const ATTRIBUTE_CONTAINER = 'ctn';
+const ATTRIBUTE_EXPANDED  = 'expanded';
 const ATTRIBUTE_SUPPORT   = 'for';
+const ATTRIBUTE_VISIBLE   = 'visible';
 
 function addClaim(store: ClaimsMap, el: Node): ClaimsMap {
   if (el.nodeName === COMPONENT_NODE_NAME) {
@@ -48,12 +51,12 @@ function displaySupport(support: HTMLElement, show: boolean) {
   if (support instanceof ClearStatement) {
     support.visible = show;
   } else {
-    show ? support.setAttribute('visible', '') : support.removeAttribute('visible');
+    show ? support.setAttribute(ATTRIBUTE_VISIBLE, '') : support.removeAttribute(ATTRIBUTE_VISIBLE);
   }
 }
 
 export default class ClearStatement extends HTMLElement {
-  static is = 'clear-statement';
+  static is = COMPONENT_TAG_NAME;
 
   static template = () => html`
     <style>
@@ -120,29 +123,29 @@ export default class ClearStatement extends HTMLElement {
   }
 
   static get observedAttributes(): string[] {
-    return ['expanded'];
+    return [ATTRIBUTE_EXPANDED];
   }
 
   attributeChangedCallback() {
     const topic = this.getAttribute(ATTRIBUTE_CLAIM);
     const ctn = this.parentElement as ClearStatement;
-    ctn.displaySupports(topic, this.hasAttribute('expanded'));
+    ctn.displaySupports(topic, this.hasAttribute(ATTRIBUTE_EXPANDED));
   }
 
   set expanded(value: boolean) {
-    value ? this.setAttribute('expanded', '') : this.removeAttribute('expanded');
+    value ? this.setAttribute(ATTRIBUTE_EXPANDED, '') : this.removeAttribute(ATTRIBUTE_EXPANDED);
   }
 
   get expanded(): boolean {
-    return this.hasAttribute('expanded');
+    return this.hasAttribute(ATTRIBUTE_EXPANDED);
   }
 
   set visible(value: boolean) {
-    value ? this.setAttribute('visible', '') : this.removeAttribute('visible');
+    value ? this.setAttribute(ATTRIBUTE_VISIBLE, '') : this.removeAttribute(ATTRIBUTE_VISIBLE);
   }
 
   get visible(): boolean {
-    return this.hasAttribute('visible');
+    return this.hasAttribute(ATTRIBUTE_VISIBLE);
   }
 
   toggleExpanded() {
