@@ -4,9 +4,24 @@ interface SupportClaimsMap {
   [_: string]: HTMLElement[];
 }
 
+interface ClaimsMap {
+  [_: string]: ClearStatement;
+}
+
+const COMPONENT_NODE_NAME = 'CLEAR-STATEMENT';
+
 const ATTRIBUTE_CLAIM     = 're';
 const ATTRIBUTE_CONTAINER = 'ctn';
 const ATTRIBUTE_SUPPORT   = 'for';
+
+function addClaim(store: ClaimsMap, el: Node): ClaimsMap {
+  if (el.nodeName === COMPONENT_NODE_NAME) {
+    const claim = el as ClearStatement;
+    const topic = claim.getAttribute(ATTRIBUTE_CLAIM);
+    store[topic] = claim;
+  }
+  return store;
+}
 
 function addSupport(store: SupportClaimsMap, support: HTMLElement): SupportClaimsMap {
   const topic = support.getAttribute(ATTRIBUTE_SUPPORT);
@@ -24,20 +39,12 @@ function onClaimClickHandler(event: MouseEvent) {
   } else {
     const clearStatement = clickedEl as ClearStatement;
     clearStatement.toggleExpanded();
-
-    const topic = clearStatement.getAttribute(ATTRIBUTE_CLAIM);
-    const supports = this.mappedSupports[topic];
-    toggleSupports(supports, clearStatement.expanded);
   }
 
   event.stopPropagation();
 }
 
-function toggleSupports(supports: HTMLElement[], show: boolean) {
-  supports.forEach((support) => toggleSupport(support, show));
-}
-
-function toggleSupport(support: HTMLElement, show: boolean) {
+function displaySupport(support: HTMLElement, show: boolean) {
   if (support instanceof ClearStatement) {
     support.visible = show;
   } else {
@@ -66,7 +73,7 @@ export default class ClearStatement extends HTMLElement {
         display: block;
       }
     </style>
-    <slot></slot>
+    <slot id="claim"></slot>
     <div><slot id="support" name="support"></slot></div>
   `
 
@@ -74,6 +81,7 @@ export default class ClearStatement extends HTMLElement {
     return el.hasAttribute(ATTRIBUTE_CLAIM);
   }
 
+  private mappedClaims: ClaimsMap;
   private mappedSupports: SupportClaimsMap;
   private onClaimClick: (event: MouseEvent) => void;
 
@@ -81,7 +89,14 @@ export default class ClearStatement extends HTMLElement {
     super();
     const shadowRoot = this.attachShadow({ mode: 'open' });
     render(ClearStatement.template(), shadowRoot);
+    this.mapClaims();
     this.mapSupports();
+  }
+
+  mapClaims() {
+    const mainSlot = this.shadowRoot.getElementById('claim') as HTMLSlotElement;
+    const nodes = mainSlot.assignedNodes();
+    this.mappedClaims = nodes.length ? nodes.reduce(addClaim, {}) : null;
   }
 
   mapSupports() {
@@ -104,6 +119,16 @@ export default class ClearStatement extends HTMLElement {
     });
   }
 
+  static get observedAttributes(): string[] {
+    return ['expanded'];
+  }
+
+  attributeChangedCallback() {
+    const topic = this.getAttribute(ATTRIBUTE_CLAIM);
+    const ctn = this.parentElement as ClearStatement;
+    ctn.displaySupports(topic, this.hasAttribute('expanded'));
+  }
+
   set expanded(value: boolean) {
     value ? this.setAttribute('expanded', '') : this.removeAttribute('expanded');
   }
@@ -122,5 +147,20 @@ export default class ClearStatement extends HTMLElement {
 
   toggleExpanded() {
     this.expanded = !this.expanded;
+  }
+
+  displaySupports(topic: string, show: boolean) {
+    const claim = this.mappedClaims[topic];
+    if (claim.expanded !== show) {
+      claim.toggleExpanded();
+    } else {
+      const supports = this.mappedSupports[topic];
+      supports.forEach((support) => displaySupport(support, show));
+    }
+  }
+
+  toggleClaim(topic: string) {
+    const claim = this.mappedClaims[topic];
+    claim.toggleExpanded();
   }
 }
