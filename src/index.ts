@@ -87,6 +87,9 @@ export default class ClearStatement extends HTMLElement {
   private mappedClaims: ClaimsMap;
   private mappedSupports: SupportsMap;
   private onClaimClick: (event: MouseEvent) => void;
+  private onCtnEnter: (event: MouseEvent) => void;
+  private onCtnLeave: (event: MouseEvent) => void;
+  private onSlotChange: (event: Event) => void;
   private slotEl: HTMLSlotElement;
 
   constructor() {
@@ -111,17 +114,22 @@ export default class ClearStatement extends HTMLElement {
     if (!this.hasAttribute(ATTRIBUTE_CONTAINER)) return;
 
     this.map();
-    this.slotEl.addEventListener('slotchange', (_: Event) => this.map());
+    this.onSlotChange = () => this.map();
+    this.slotEl.addEventListener('slotchange', this.onSlotChange);
 
-    this.onClaimClick = onClaimClickHandler.bind(this);
+    this.onClaimClick = onClaimClickHandler;
+    this.onCtnEnter = () => this.addEventListener('click', this.onClaimClick);
+    this.onCtnLeave = () => this.removeEventListener('click', this.onClaimClick);
 
-    this.addEventListener('mouseenter', (_) => {
-      this.addEventListener('click', this.onClaimClick);
-    });
+    this.addEventListener('mouseenter', this.onCtnEnter);
+    this.addEventListener('mouseleave', this.onCtnLeave);
+  }
 
-    this.addEventListener('mouseleave', (_) => {
-      this.removeEventListener('click', this.onClaimClick);
-    });
+  disconnectedCallback() {
+    if (!this.hasAttribute(ATTRIBUTE_CONTAINER)) return;
+    this.removeEventListener('mouseenter', this.onCtnEnter);
+    this.removeEventListener('mouseleave', this.onCtnLeave);
+    this.slotEl.removeEventListener('slotchange', this.onSlotChange);
   }
 
   static get observedAttributes(): string[] {
