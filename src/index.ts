@@ -1,6 +1,6 @@
 import { html, render } from 'lit-html';
 
-interface SupportClaimsMap {
+interface SupportsMap {
   [_: string]: HTMLElement[];
 }
 
@@ -23,7 +23,7 @@ function addClaim(store: ClaimsMap, el: Node): ClaimsMap {
   return store;
 }
 
-function addSupport(store: SupportClaimsMap, support: HTMLElement): SupportClaimsMap {
+function addSupport(store: SupportsMap, support: HTMLElement): SupportsMap {
   const topic = support.getAttribute(ATTRIBUTE_SUPPORT);
   store[topic] = (store[topic] || []);
   store[topic].push(support);
@@ -82,7 +82,7 @@ export default class ClearStatement extends HTMLElement {
   }
 
   private mappedClaims: ClaimsMap;
-  private mappedSupports: SupportClaimsMap;
+  private mappedSupports: SupportsMap;
   private onClaimClick: (event: MouseEvent) => void;
 
   constructor() {
