@@ -17,20 +17,15 @@ const ATTRIBUTE_EXPANDED  = 'expanded';
 const ATTRIBUTE_SUPPORT   = 'for';
 const ATTRIBUTE_VISIBLE   = 'visible';
 
-function addClaim(store: ClaimsMap, el: Node): ClaimsMap {
-  if (el.nodeName === COMPONENT_NODE_NAME) {
-    const claim = el as ClearStatement;
-    const topic = claim.getAttribute(ATTRIBUTE_CLAIM);
-    store[topic] = claim;
-  }
-  return store;
+function addClaim(store: ClaimsMap, claim: ClearStatement) {
+  const topic = claim.getAttribute(ATTRIBUTE_CLAIM);
+  store[topic] = claim;
 }
 
-function addSupport(store: SupportsMap, support: HTMLElement): SupportsMap {
+function addSupport(store: SupportsMap, support: HTMLElement) {
   const topic = support.getAttribute(ATTRIBUTE_SUPPORT);
   store[topic] = (store[topic] || []);
   store[topic].push(support);
-  return store;
 }
 
 function onClaimClickHandler(event: MouseEvent) {
@@ -76,40 +71,45 @@ export default class ClearStatement extends HTMLElement {
         display: block;
       }
     </style>
-    <slot id="claim"></slot>
-    <div><slot id="support" name="support"></slot></div>
+    <slot id="slot"></slot>
   `
 
   static isClaim(el: HTMLElement): boolean {
-    return el.hasAttribute(ATTRIBUTE_CLAIM);
+    return el instanceof HTMLElement && el.nodeName === COMPONENT_NODE_NAME && el.hasAttribute(ATTRIBUTE_CLAIM);
+  }
+
+  static isSupport(el: HTMLElement): boolean {
+    return el instanceof HTMLElement && el.hasAttribute(ATTRIBUTE_SUPPORT);
   }
 
   private mappedClaims: ClaimsMap;
   private mappedSupports: SupportsMap;
   private onClaimClick: (event: MouseEvent) => void;
+  private slotEl: HTMLSlotElement;
 
   constructor() {
     super();
     const shadowRoot = this.attachShadow({ mode: 'open' });
     render(ClearStatement.template(), shadowRoot);
-    this.mapClaims();
-    this.mapSupports();
+    this.slotEl = shadowRoot.getElementById('slot') as HTMLSlotElement;
   }
 
-  mapClaims() {
-    const mainSlot = this.shadowRoot.getElementById('claim') as HTMLSlotElement;
-    const nodes = mainSlot.assignedNodes();
-    this.mappedClaims = nodes.length ? nodes.reduce(addClaim, {}) : null;
-  }
-
-  mapSupports() {
-    const supportsSlot = this.shadowRoot.getElementById('support') as HTMLSlotElement;
-    const supportNodes = supportsSlot.assignedNodes();
-    this.mappedSupports = supportNodes.length ? supportNodes.reduce(addSupport, {}) : null;
+  map() {
+    const nodes = this.slotEl.assignedNodes();
+    const claims = {} as ClaimsMap, supports = {} as SupportsMap;
+    nodes.forEach((node) => {
+      if (!(node instanceof HTMLElement)) return;
+      if (ClearStatement.isClaim(node)) addClaim(claims, node as ClearStatement);
+      if (ClearStatement.isSupport(node)) addSupport(supports, node);
+    });
+    this.mappedClaims = claims, this.mappedSupports = supports;
   }
 
   connectedCallback() {
     if (!this.hasAttribute(ATTRIBUTE_CONTAINER)) return;
+
+    this.map();
+    this.slotEl.addEventListener('slotchange', (_: Event) => this.map());
 
     this.onClaimClick = onClaimClickHandler.bind(this);
 
