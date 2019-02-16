@@ -8,14 +8,16 @@ interface ClaimsMap {
   [_: string]: ClearStatement;
 }
 
-const COMPONENT_TAG_NAME  = 'clear-statement';
-const COMPONENT_NODE_NAME = 'CLEAR-STATEMENT';
-
 const ATTRIBUTE_CLAIM     = 're';
 const ATTRIBUTE_CONTAINER = 'ctn';
 const ATTRIBUTE_EXPANDED  = 'expanded';
 const ATTRIBUTE_SUPPORT   = 'for';
 const ATTRIBUTE_VISIBLE   = 'visible';
+
+const COMPONENT_TAG_NAME  = 'clear-statement';
+const COMPONENT_NODE_NAME = 'CLEAR-STATEMENT';
+
+const ID_SLOT             = 'slot';
 
 function addClaim(store: ClaimsMap, claim: ClearStatement) {
   const topic = claim.getAttribute(ATTRIBUTE_CLAIM);
@@ -55,7 +57,7 @@ export default class ClearStatement extends HTMLElement {
 
   static template = () => html`
     <style>
-      :host([ctn]) {
+      :host([${ATTRIBUTE_CONTAINER}]) {
         display: block;
       }
 
@@ -63,15 +65,15 @@ export default class ClearStatement extends HTMLElement {
         display: inline-block;
       }
 
-      ::slotted([slot="support"]:not([visible])) {
+      ::slotted([${ATTRIBUTE_SUPPORT}]:not([${ATTRIBUTE_VISIBLE}])) {
         display: none;
       }
 
-      ::slotted([slot="support"][visible]) {
+      ::slotted([${ATTRIBUTE_SUPPORT}][${ATTRIBUTE_VISIBLE}]) {
         display: block;
       }
     </style>
-    <slot id="slot"></slot>
+    <slot id="${ID_SLOT}"></slot>
   `
 
   static isClaim(el: HTMLElement): boolean {
@@ -91,7 +93,7 @@ export default class ClearStatement extends HTMLElement {
     super();
     const shadowRoot = this.attachShadow({ mode: 'open' });
     render(ClearStatement.template(), shadowRoot);
-    this.slotEl = shadowRoot.getElementById('slot') as HTMLSlotElement;
+    this.slotEl = shadowRoot.getElementById(ID_SLOT) as HTMLSlotElement;
   }
 
   map() {
