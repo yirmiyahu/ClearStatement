@@ -30,7 +30,7 @@ function addSupport(store: SupportsMap, support: HTMLElement) {
   store[topic].push(support);
 }
 
-function onClaimClickHandler(event: MouseEvent) {
+function onClaimClick(event: Event) {
   const clickedEl = event.target as HTMLElement;
   if (!ClearStatement.isClaim(clickedEl)) return;
 
@@ -42,6 +42,12 @@ function onClaimClickHandler(event: MouseEvent) {
   }
 
   event.stopPropagation();
+}
+
+const KEY_CODE_ENTER = 13;
+
+function onClaimKeydown(event: KeyboardEvent) {
+  if (event.keyCode === KEY_CODE_ENTER) onClaimClick(event);
 }
 
 function displaySupport(support: HTMLElement, show: boolean) {
@@ -84,13 +90,14 @@ export default class ClearStatement extends HTMLElement {
     return el instanceof HTMLElement && el.hasAttribute(ATTRIBUTE_SUPPORT);
   }
 
-  private mappedClaims: ClaimsMap;
+  private mappedClaims:   ClaimsMap;
   private mappedSupports: SupportsMap;
-  private onClaimClick: (event: MouseEvent) => void;
-  private onCtnEnter: (event: MouseEvent) => void;
-  private onCtnLeave: (event: MouseEvent) => void;
-  private onSlotChange: (event: Event) => void;
-  private slotEl: HTMLSlotElement;
+  private onBlur:         (event: Event) => void;
+  private onCtnEnter:     (event: MouseEvent) => void;
+  private onCtnLeave:     (event: MouseEvent) => void;
+  private onFocus:        (event: Event) => void;
+  private onSlotChange:   (event: Event) => void;
+  private slotEl:         HTMLSlotElement;
 
   constructor() {
     super();
@@ -111,25 +118,37 @@ export default class ClearStatement extends HTMLElement {
   }
 
   connectedCallback() {
-    if (!this.hasAttribute(ATTRIBUTE_CONTAINER)) return;
+    if (this.hasAttribute(ATTRIBUTE_CLAIM)) {
+      this.tabIndex = 0;
+      this.onFocus = () => this.addEventListener('keydown', onClaimKeydown);
+      this.addEventListener('focus', this.onFocus);
 
-    this.map();
-    this.onSlotChange = () => this.map();
-    this.slotEl.addEventListener('slotchange', this.onSlotChange);
+      this.onBlur = () => this.removeEventListener('keydown', onClaimKeydown);
+      this.addEventListener('blur', this.onBlur);
+    } else if (this.hasAttribute(ATTRIBUTE_CONTAINER)) {
+      this.map();
+      this.onSlotChange = () => this.map();
+      this.slotEl.addEventListener('slotchange', this.onSlotChange);
 
-    this.onClaimClick = onClaimClickHandler;
-    this.onCtnEnter = () => this.addEventListener('click', this.onClaimClick);
-    this.onCtnLeave = () => this.removeEventListener('click', this.onClaimClick);
+      this.onCtnEnter = () => this.addEventListener('click', onClaimClick);
+      this.addEventListener('mouseenter', this.onCtnEnter);
 
-    this.addEventListener('mouseenter', this.onCtnEnter);
-    this.addEventListener('mouseleave', this.onCtnLeave);
+      this.onCtnLeave = () => this.removeEventListener('click', onClaimClick);
+      this.addEventListener('mouseleave', this.onCtnLeave);
+    }
   }
 
   disconnectedCallback() {
-    if (!this.hasAttribute(ATTRIBUTE_CONTAINER)) return;
-    this.removeEventListener('mouseenter', this.onCtnEnter);
-    this.removeEventListener('mouseleave', this.onCtnLeave);
-    this.slotEl.removeEventListener('slotchange', this.onSlotChange);
+    if (this.hasAttribute(ATTRIBUTE_CLAIM)) {
+      this.removeEventListener('keydown', onClaimKeydown);
+      this.removeEventListener('focus', this.onFocus);
+      this.removeEventListener('blur', this.onBlur);
+    } else if (this.hasAttribute(ATTRIBUTE_CONTAINER)) {
+      this.slotEl.removeEventListener('slotchange', this.onSlotChange);
+      this.removeEventListener('click', onClaimClick);
+      this.removeEventListener('mouseenter', this.onCtnEnter);
+      this.removeEventListener('mouseleave', this.onCtnLeave);
+    }
   }
 
   static get observedAttributes(): string[] {
