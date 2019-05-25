@@ -1,4 +1,5 @@
 import typescript from 'rollup-plugin-typescript';
+import resolve from 'rollup-plugin-node-resolve';
 import pkg from './package.json';
 
 export default {
@@ -15,5 +16,6 @@ export default {
   ],
   plugins: [
     typescript(),
+    resolve(),
   ],
 };
