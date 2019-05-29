@@ -108,7 +108,7 @@ export default class ClearStatement extends HTMLElement {
     shadowRoot.appendChild(this.slotEl);
   }
 
-  map() {
+  mapStatements() {
     const nodes = this.slotEl.assignedNodes();
     const claims = {} as ClaimsMap, supports = {} as SupportsMap;
     nodes.forEach((node) => {
@@ -128,8 +128,8 @@ export default class ClearStatement extends HTMLElement {
       this.onBlur = () => this.removeEventListener('keydown', onClaimKeydown);
       this.addEventListener('blur', this.onBlur);
     } else if (this.hasAttribute(ATTRIBUTE_CONTAINER)) {
-      this.map();
-      this.onSlotChange = () => this.map();
+      this.mapStatements();
+      this.onSlotChange = () => this.mapStatements();
       this.slotEl.addEventListener('slotchange', this.onSlotChange);
 
       this.onCtnEnter = () => this.addEventListener('click', onClaimClick);
