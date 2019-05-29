@@ -6,7 +6,8 @@
     "moduleResolution": "node",
     "noImplicitAny": true,
     "outDir": "./dist",
-    "target": "esnext"
+    "target": "esnext",
+    "typeRoots": [ "./src/types", "./node_modules/@types"]
   },
   "include": [
     "src/**/*.ts"

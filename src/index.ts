@@ -1,5 +1,3 @@
-import { html, render } from 'lit-html';
-
 interface SupportsMap {
   [_: string]: HTMLElement[];
 }
@@ -58,29 +56,31 @@ function displaySupport(support: HTMLElement, show: boolean) {
   }
 }
 
+const styleSheet = new CSSStyleSheet();
+styleSheet.replaceSync(`
+  :host([${ATTRIBUTE_CONTAINER}]) {
+    display: block;
+  }
+
+  :host([${ATTRIBUTE_CLAIM}]) {
+    cursor: pointer;
+  }
+
+  :host {
+    display: inline-block;
+  }
+
+  ::slotted([${ATTRIBUTE_SUPPORT}]:not([${ATTRIBUTE_VISIBLE}])) {
+    display: none;
+  }
+
+  ::slotted([${ATTRIBUTE_SUPPORT}][${ATTRIBUTE_VISIBLE}]) {
+    display: block;
+  }
+`.replace(/\n|\s\s+/g, ''));
+
 export default class ClearStatement extends HTMLElement {
   static is = COMPONENT_TAG_NAME;
-
-  static template = () => html`
-    <style>
-      :host([${ATTRIBUTE_CONTAINER}]) {
-        display: block;
-      }
-
-      :host {
-        display: inline-block;
-      }
-
-      ::slotted([${ATTRIBUTE_SUPPORT}]:not([${ATTRIBUTE_VISIBLE}])) {
-        display: none;
-      }
-
-      ::slotted([${ATTRIBUTE_SUPPORT}][${ATTRIBUTE_VISIBLE}]) {
-        display: block;
-      }
-    </style>
-    <slot id="${ID_SLOT}"></slot>
-  `
 
   static isClaim(el: HTMLElement): boolean {
     return el instanceof HTMLElement && el.nodeName === COMPONENT_NODE_NAME && el.hasAttribute(ATTRIBUTE_CLAIM);
@@ -101,9 +101,11 @@ export default class ClearStatement extends HTMLElement {
 
   constructor() {
     super();
+    this.slotEl = document.createElement('slot') as HTMLSlotElement;
+    this.slotEl.id = ID_SLOT;
     const shadowRoot = this.attachShadow({ mode: 'open' });
-    render(ClearStatement.template(), shadowRoot);
-    this.slotEl = shadowRoot.getElementById(ID_SLOT) as HTMLSlotElement;
+    shadowRoot.adoptedStyleSheets = [ styleSheet ];
+    shadowRoot.appendChild(this.slotEl);
   }
 
   map() {
