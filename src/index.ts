@@ -90,6 +90,7 @@ export default class ClearStatement extends HTMLElement {
     return el instanceof HTMLElement && el.hasAttribute(ATTRIBUTE_SUPPORT);
   }
 
+  private slotEl:         HTMLSlotElement;
   private mappedClaims:   ClaimsMap;
   private mappedSupports: SupportsMap;
   private onBlur:         (event: Event) => void;
@@ -97,14 +98,13 @@ export default class ClearStatement extends HTMLElement {
   private onCtnLeave:     (event: MouseEvent) => void;
   private onFocus:        (event: Event) => void;
   private onSlotChange:   (event: Event) => void;
-  private slotEl:         HTMLSlotElement;
 
   constructor() {
     super();
-    this.slotEl = document.createElement('slot') as HTMLSlotElement;
-    this.slotEl.id = ID_SLOT;
     const shadowRoot = this.attachShadow({ mode: 'open' });
     shadowRoot.adoptedStyleSheets = [ styleSheet ];
+    this.slotEl = document.createElement('slot') as HTMLSlotElement;
+    this.slotEl.setAttribute('id', ID_SLOT);
     shadowRoot.appendChild(this.slotEl);
   }
 
