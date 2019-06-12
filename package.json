@@ -13,11 +13,11 @@
   "author": "Jeremy Tan <emailjeremytan@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^1.1.2",
-    "rollup-plugin-node-resolve": "^4.0.0",
-    "rollup-plugin-typescript": "^1.0.0",
-    "tslib": "^1.9.3",
-    "tslint": "^5.12.1",
-    "typescript": "^3.4.5"
+    "rollup": "^1.15.1",
+    "rollup-plugin-node-resolve": "^5.0.1",
+    "rollup-plugin-typescript": "^1.0.1",
+    "tslib": "^1.10.0",
+    "tslint": "^5.17.0",
+    "typescript": "^3.5.1"
   }
 }
